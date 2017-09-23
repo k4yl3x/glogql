@@ -1,0 +1,214 @@
+---
+query:
+  aliases:
+    - regexp: "([\t\n ]+)period\\( *([^,]*) *, *([^)]*) *\\)([\t\n ,]+)"
+      replacement: "${1}datetime((strftime('%s', ${2})/${3})*${3}, 'unixepoch', 'localtime')${4}"
+  analysis_set:
+    - label: vmstat-cpu
+      type: vmstat-t
+      query: >-
+        select
+            period(timestamp,1) as time,
+            cpu_us,
+            cpu_sy,
+            cpu_id,
+            cpu_wa,
+            cpu_st
+        from
+            stdin
+    - label: vmstat-memory
+      type: vmstat-t
+      query: >-
+        select
+            period(timestamp,1) as time,
+            mem_buff/1000 as "buf[MB]",
+            mem_free/1000 as "free[MB]",
+            mem_cache/1000 as "cache[MB]"
+        from
+            stdin
+    - label: sysstat-cpu
+      type: sysstat-u
+      query: >-
+        select
+            period(timestamp,1) as time,
+            user,
+            nice,
+            system,
+            iowait,
+            idle,
+            steal
+        from
+            stdin
+        %arg1%
+    - label: sysstat-memory
+      type: sysstat-r
+      query: >-
+        select
+            period(timestamp,1) as time,
+            (kbmemused-kbcached-kbbuffers)/1000 as "used[MB]",
+            kbbuffers/1000 as "buffer[MB]",
+            kbcached/1000 as "cached[MB]",
+            kbmemfree/1000 "free[MB]"
+        from
+            stdin
+        %arg1%
+    - label: sysstat-network
+      type: sysstat-n
+      query: >-
+        select
+            period(timestamp,1) as time,
+            rxpck_s as "rx[packet/s]",
+            txpck_s as "tx[packet/s]",
+            rxkB_s as "rx[kB/s]",
+            txkB_s as "tx[kB/s]"
+        from
+            stdin
+        %arg1%
+parse:
+  global:
+    timezone:
+      name: "Asia/Tokyo"
+      offset: 32400 # (seconds east of UTC)
+  log_types:
+    apache_combined:
+      string_grouping_rules:
+        - # when the start_with char is appeared at log string,
+          # parser is not split string while the end_with char appear.
+          # this feature is useful for apache default time format.
+          # (i.e. [02/Jan/2006:15:04:05 -0700])
+          start_with: "["
+          end_with: "]"
+        - start_with: '"'
+          end_with: '"'
+      delimiters:
+        - " "
+      columns:
+        - remote_host
+        - remote_logname
+        - remote_user
+        - timestamp
+        - request
+        - status_code
+        - size
+        - referer
+        - user_agent
+      time_columns:
+        - column_name: timestamp
+          format: "[02/Jan/2006:15:04:05 -0700]"
+    vmstat-t:
+      delimiters:
+        - " "
+      skip_delimiter_repeat: yes
+      trim_bol_delimiters: yes
+      skip_bol_withs:
+        - "procs"
+        - " r  b"
+      columns:
+        - proc_r
+        - proc_b
+        - mem_swpd
+        - mem_free
+        - mem_buff
+        - mem_cache
+        - swap_si
+        - swap_so
+        - io_bi
+        - io_bo
+        - system_in
+        - system_cs
+        - cpu_us
+        - cpu_sy
+        - cpu_id
+        - cpu_wa
+        - cpu_st
+        - date
+        - time
+      join_columns:
+        timestamp:
+          columns:
+            - date
+            - time
+          delimiter: " "
+      time_columns:
+        - column_name: timestamp
+          format: "2006-01-02 15:04:05"
+          timezone:
+            name: "Asia/Tokyo"
+            offset: 32400 # (seconds east of UTC)
+    sysstat-u:
+      delimiters:
+        - ";"
+      skip_delimiter_repeat: no
+      trim_bol_delimiters: no
+      skip_bol_withs:
+        - "#"
+      columns:
+        - hostname
+        - interval
+        - timestamp
+        - CPU
+        - user
+        - nice
+        - system
+        - iowait
+        - steal
+        - idle
+      time_columns:
+        - column_name: timestamp
+          format: "2006-01-02 15:04:05"
+          timezone:
+            name: "Asia/Tokyo"
+            offset: 32400 # (seconds east of UTC)
+    sysstat-r:
+      delimiters:
+        - ";"
+      skip_delimiter_repeat: no
+      trim_bol_delimiters: no
+      skip_bol_withs:
+        - "#"
+      columns:
+        - hostname
+        - interval
+        - timestamp
+        - kbmemfree
+        - kbmemused
+        - memused
+        - kbbuffers
+        - kbcached
+        - kbcommit
+        - commit
+        - kbactive
+        - kbinact
+        - kbdirty
+      time_columns:
+        - column_name: timestamp
+          format: "2006-01-02 15:04:05"
+          timezone:
+            name: "Asia/Tokyo"
+            offset: 32400 # (seconds east of UTC)
+    sysstat-n:
+      delimiters:
+        - ";"
+      skip_delimiter_repeat: no
+      trim_bol_delimiters: no
+      skip_bol_withs:
+        - "#"
+      columns:
+        - hostname
+        - interval
+        - timestamp
+        - IFACE
+        - rxpck_s
+        - txpck_s
+        - rxkB_s
+        - txkB_s
+        - rxcmp_s
+        - txcmp_s
+        - rxmcst_s
+        - ifutil
+      time_columns:
+        - column_name: timestamp
+          format: "2006-01-02 15:04:05"
+          timezone:
+            name: "Asia/Tokyo"
+            offset: 32400 # (seconds east of UTC)
