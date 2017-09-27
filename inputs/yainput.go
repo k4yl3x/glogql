@@ -128,12 +128,13 @@ func (yi *YaInput) ReadRecord() (rows []string) {
 		}
 
 		for i, v := range yi.divideColumns {
-			s := strings.SplitN(r[i], v.Delimiter, len(v.Columns))
-			for j := 0; j < len(v.Columns); j++ {
-				if len(s) > j {
-					r = append(r, s[j])
-				} else {
-					r = append(r, "")
+				s := strings.SplitN(r[i], v.Delimiter, len(v.Columns))
+				for j := 0; j < len(v.Columns); j++ {
+					if len(s) > j {
+						r = append(r, s[j])
+					} else {
+						r = append(r, "")
+					}
 				}
 			}
 		}
@@ -238,7 +239,7 @@ func (yi *YaInput) init() {
 	cb := make([]columnBuilder, 0, len(columnBuilders))
 	for i := range ht {
 		if v, ok := yi.options.Config.DivideColumns[ht[i]]; ok {
-			divideColumns[i] = v
+			divideColumns[workingColumnNames[ht[i]]] = v
 			for j := 0; j < len(v.Columns); j++ {
 				header = append(header, v.Columns[j])
 				cb = append(cb, columnBuilders[v.Columns[j]])
