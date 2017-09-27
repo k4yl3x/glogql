@@ -127,7 +127,8 @@ func (yi *YaInput) ReadRecord() (rows []string) {
 			log.Fatalf("yi.parser.Parse faild %v", err)
 		}
 
-		for i, v := range yi.divideColumns {
+		for i := 0; i < len(r); i++ {
+			if v, ok := yi.divideColumns[i]; ok {
 				s := strings.SplitN(r[i], v.Delimiter, len(v.Columns))
 				for j := 0; j < len(v.Columns); j++ {
 					if len(s) > j {
