@@ -66,16 +66,16 @@ OPTIONS:
 		i++
 	}
 	app.Flags = []cli.Flag{
+		// cli.BoolFlag{
+		// 	Name:  "enable-raw-line, r",
+		// 	Usage: "includes original line",
+		// },
 		cli.BoolFlag{
-			Name:  "enable_raw_line, r",
-			Usage: "includes original line",
-		},
-		cli.BoolFlag{
-			Name:  "output_tsv, T",
+			Name:  "output-tsv, T",
 			Usage: "outputs with tsv format",
 		},
 		cli.BoolFlag{
-			Name:  "repeat_table_header",
+			Name:  "repeat-table-header",
 			Usage: "show table header each 30 rows",
 		},
 		cli.StringFlag{
@@ -146,7 +146,7 @@ func action(c *cli.Context) error {
 	s.LoadInput(input)
 
 	var output outputs.Output
-	if c.GlobalBool("output_tsv") {
+	if c.GlobalBool("output-tsv") {
 		displayOpts := &outputs.CSVOutputOptions{
 			WriteHeader: true,
 			Separator:   rune('\t'),
@@ -158,7 +158,7 @@ func action(c *cli.Context) error {
 		displayOpts := &myOutput.PrettyTableOutputOptions{
 			WriteHeader:  true,
 			WriteTo:      os.Stdout,
-			RepeatHeader: c.GlobalBool("repeat_table_header"),
+			RepeatHeader: c.GlobalBool("repeat-table-header"),
 		}
 		output = myOutput.NewPrettyTableOutput(displayOpts)
 	}
@@ -178,7 +178,7 @@ func action(c *cli.Context) error {
 	}
 
 	if queryResults != nil {
-		if c.GlobalBool("output_tsv") {
+		if c.GlobalBool("output-tsv") {
 			fmt.Print("#")
 		}
 		output.Show(queryResults)
