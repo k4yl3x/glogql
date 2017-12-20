@@ -21,8 +21,9 @@ type PrettyTableOutput struct {
 
 // PrettyTableOutputOptions is ...
 type PrettyTableOutputOptions struct {
-	WriteHeader bool
-	WriteTo     io.Writer
+	WriteHeader  bool
+	WriteTo      io.Writer
+	RepeatHeader bool
 }
 
 // NewPrettyTableOutput is ...
@@ -33,6 +34,9 @@ func NewPrettyTableOutput(opts *PrettyTableOutputOptions) *PrettyTableOutput {
 	}
 
 	prettyTableOutput.writer.SetAutoWrapText(false)
+	if prettyTableOutput.options.RepeatHeader {
+		prettyTableOutput.writer.SetBorders(tablewriter.Border{Left: true, Top: true, Right: true, Bottom: false})
+	}
 
 	return prettyTableOutput
 }
@@ -61,15 +65,16 @@ func (o *PrettyTableOutput) Show(rows *sql.Rows) {
 		dest[i] = &rawResult[i]
 	}
 
+	j := 0
 	for rows.Next() {
 		rows.Scan(dest...)
 
 		for i, raw := range rawResult {
 
 			if _, err := strconv.ParseInt(string(raw), 10, 64); err == nil {
-				result[i] = string(raw)
+				result[i] = string(raw) + ".00"
 			} else if f, err := strconv.ParseFloat(string(raw), 64); err == nil {
-				result[i] = fmt.Sprintf("%f", f)
+				result[i] = fmt.Sprintf("%.2f", f)
 			} else {
 				result[i] = string(raw)
 			}
@@ -77,8 +82,18 @@ func (o *PrettyTableOutput) Show(rows *sql.Rows) {
 		}
 
 		o.writer.Append(result)
+		j++
+		if o.options.RepeatHeader {
+			if j%30 == 0 {
+				o.writer.Render()
+				o.writer.ClearRows()
+			}
+		}
 	}
 
+	if o.options.RepeatHeader {
+		o.writer.SetBorders(tablewriter.Border{Left: true, Top: true, Right: true, Bottom: true})
+	}
 	o.writer.Render()
 	rows.Close()
 }

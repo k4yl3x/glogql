@@ -13,11 +13,11 @@ import (
 	"gopkg.in/yaml.v2"
 
 	"github.com/codegangsta/cli"
+	"github.com/dinedal/textql/outputs"
+	"github.com/dinedal/textql/storage"
 	"github.com/k4yl3x/logql/config"
 	myInput "github.com/k4yl3x/logql/inputs"
 	myOutput "github.com/k4yl3x/logql/outputs"
-	"github.com/dinedal/textql/outputs"
-	"github.com/dinedal/textql/storage"
 	"github.com/mitchellh/go-homedir"
 )
 
@@ -73,6 +73,10 @@ OPTIONS:
 		cli.BoolFlag{
 			Name:  "output_tsv, T",
 			Usage: "outputs with tsv format",
+		},
+		cli.BoolFlag{
+			Name:  "repeat_table_header",
+			Usage: "show table header each 30 rows",
 		},
 		cli.StringFlag{
 			Name:  "query, q",
@@ -152,8 +156,9 @@ func action(c *cli.Context) error {
 		output = outputs.NewCSVOutput(displayOpts)
 	} else {
 		displayOpts := &myOutput.PrettyTableOutputOptions{
-			WriteHeader: true,
-			WriteTo:     os.Stdout,
+			WriteHeader:  true,
+			WriteTo:      os.Stdout,
+			RepeatHeader: c.GlobalBool("repeat_table_header"),
 		}
 		output = myOutput.NewPrettyTableOutput(displayOpts)
 	}
