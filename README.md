@@ -1,15 +1,15 @@
-# LogQL
+# gLogQL
 
-`LogQL` is a command line tool that executes SQL-like query against raw log files.
+`gLogQL` is a command line tool that executes SQL-like query against raw log files.
 
-This tool parses each stdin lines according to the configration file(~/.logql.yml)
+This tool parses each stdin lines according to the configration file(~/.glogql.yml)
 and executes query against the parsed columns.
 
 ## Usage
 
 ```bash
-# create ~/.logql.yml file
-$ cp /path/to/logql/logql.yml ~/.logql.yml
+# create ~/.glogql.yml file
+$ cp /path/to/glogql/glogql.yml ~/.glogql.yml
 
 # The target data is a general Apache combined log
 $ head -n 2 access.log
@@ -19,7 +19,7 @@ https://foo.987.bar.com/xxxxxx/index.php" "Mozilla/5.0 (Windows NT 6.1) AppleWeb
 192.168.22.98 - - [11/Sep/2017:06:25:21 +0300] "GET /ghdfaioi.html HTTP/1.1" 200 - "-" "-"
 
 # pass to logql command with log type option
-$ head -n 5 access.log | logql -t apache_combined | cut -c-100
+$ head -n 5 access.log | glogql -t apache_combined | cut -c-100
 +---------------+----------------+-------------+---------------------------+------------------------
 |  remote_host  | remote_logname | remote_user |         timestamp         |                       r
 +---------------+----------------+-------------+---------------------------+------------------------
@@ -31,7 +31,7 @@ $ head -n 5 access.log | logql -t apache_combined | cut -c-100
 +---------------+----------------+-------------+---------------------------+------------------------
 
 # select columns
-$ head -n 5 access.log | logql -t apache_combined -q 'select timestamp, referer'
+$ head -n 5 access.log | glogql -t apache_combined -q 'select timestamp, referer'
 +---------------------------+--------------------------------------------+
 |         timestamp         |                  referer                   |
 +---------------------------+--------------------------------------------+
@@ -44,7 +44,7 @@ $ head -n 5 access.log | logql -t apache_combined -q 'select timestamp, referer'
 
 # filtering by remote_host
 $ head -n 20 access.log \
-    | logql -t apache_combined  -q 'select timestamp, referer where remote_host = "172.16.123.45"'
+    | glogql -t apache_combined  -q 'select timestamp, referer where remote_host = "172.16.123.45"'
 +---------------------------+--------------------------------------------+
 |         timestamp         |                  referer                   |
 +---------------------------+--------------------------------------------+
@@ -60,7 +60,7 @@ $ head -n 20 access.log \
 +---------------------------+--------------------------------------------+
 
 # aggregation
-$ cat access.log | logql -t apache_combined -q 'select status_code, count(1) group by status_code'
+$ cat access.log | glogql -t apache_combined -q 'select status_code, count(1) group by status_code'
 +-------------+----------+
 | status_code | count(1) |
 +-------------+----------+
