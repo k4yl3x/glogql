@@ -18,7 +18,7 @@ https://foo.987.bar.com/xxxxxx/index.php" "Mozilla/5.0 (Windows NT 6.1) AppleWeb
 ) Chrome/60.0.3112.113 Safari/537.36"
 192.168.22.98 - - [11/Sep/2017:06:25:21 +0300] "GET /ghdfaioi.html HTTP/1.1" 200 - "-" "-"
 
-# pass to logql command with log type option
+# pass to glogql command with log type option
 $ head -n 5 access.log | glogql -t apache_combined | cut -c-100
 +---------------+----------------+-------------+---------------------------+------------------------
 |  remote_host  | remote_logname | remote_user |         timestamp         |                       r
